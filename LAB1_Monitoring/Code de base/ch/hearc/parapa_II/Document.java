@@ -1,5 +1,7 @@
 package ch.hearc.parapa_II;
 
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 public class Document 
 {
 	/*
@@ -15,6 +17,8 @@ public class Document
 	
 	// Other variables
 	private String name;
+
+	private ReentrantReadWriteLock reentrantLock;
 	
 	/**
 	 * Constructor
@@ -23,6 +27,8 @@ public class Document
 	public Document(String name)
 	{
 		this.name = name;
+
+		this.reentrantLock = new ReentrantReadWriteLock();
 		
 		content = "No data";
 	}
@@ -42,6 +48,15 @@ public class Document
 	 */
 	public String readContent()
 	{
+		// Protect the content
+		reentrantLock.readLock().lock();
+
+		// Deep copy the content
+		String content = new String(this.content);
+
+		// Release the lock
+		reentrantLock.readLock().unlock();
+
 		return content;
 	}
 	
@@ -51,6 +66,12 @@ public class Document
 	 */
 	public void setContent(String newContent)
 	{
+		// Protect the content
+		reentrantLock.writeLock().lock();
+
 		content = newContent;
+
+		// Release the lock
+		reentrantLock.writeLock().unlock();
 	}
 }

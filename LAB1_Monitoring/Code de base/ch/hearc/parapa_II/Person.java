@@ -55,6 +55,21 @@ public class Person implements Runnable
 			 * Remarque : addWaiting du WaitingLogger
 			 * -----------------------------------------------------------------------------------------------
 			 */
+
+			// Faire patienter la personne tant que le temps ecoule ne depasse pas son temps de depart
+			while (timePassed() < startingTime)
+			{
+				// Pause
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+
+			// Une fois lance, ajoutez la personne dans la file d'attente d'acces a son document
+			waitingLogger.addWaiting(this, this.durationTime);
 			
 			if (role == Role.READER)
 			{
@@ -68,6 +83,7 @@ public class Person implements Runnable
 				 *            - Le contenu lu dans le document ne doit pas necessairement �tre traite, seul l'operation de lecture importe
 				 * ------------------------------------------------------------------------------------------------------------------------------------
 				 */
+				
 			}
 			else
 			{
@@ -84,7 +100,7 @@ public class Person implements Runnable
 			}
 			
 		}
-		//catch (InterruptedException e) {}     <- a docummenter quand necessaire (gestion de l'interruption du programme)
+		//catch (InterruptedException e) {}     <- a documenter quand necessaire (gestion de l'interruption du programme)
 	}
 	
 	

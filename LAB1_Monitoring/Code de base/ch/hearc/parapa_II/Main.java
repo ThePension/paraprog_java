@@ -23,8 +23,8 @@ public class Main
 		@Override
 		public String call() throws Exception 
 		{
-			int nbDocuments = 0;
-			int nbPersons = 0;
+			int nbDocuments = 5;
+			int nbPersons = 20;
 			
 			/*
 			 * ----------------------------------------------------------------------------------------
@@ -69,6 +69,8 @@ public class Main
 				 * 	          Pour afficher la prochaine operation du stack, voir la méthode popNextLog du WaitingLogger
 				 * --------------------------------------------------------------------------------------------------------------------
 				 */
+
+				waitingLogger.popNextLog();
 			} 
 			
 			return "";
