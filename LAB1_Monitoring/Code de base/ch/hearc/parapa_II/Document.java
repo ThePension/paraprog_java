@@ -4,14 +4,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class Document 
 {
-	/*
-	 * -----------------------------------------------------------------------------------
-	 * TODO : Ajouter les locks au documents afin d'assurer un acces concurrent à celui-ci
-	 * 
-	 * Remarque : java.util.concurrent contient tout ce qu'il faut
-	 * -----------------------------------------------------------------------------------
-	 */
-	
 	// Concurrent content
 	private String content;
 	
@@ -41,21 +33,41 @@ public class Document
 	{
 		return name;
 	}
+
+	/**
+	 * Get the reading lock
+	 * @return the reading lock
+	 */
+	public ReentrantReadWriteLock.ReadLock getReadLock()
+	{
+		return reentrantLock.readLock();
+	}
+
+	/**
+	 * Get the writing lock
+	 * @return the writing lock
+	 */
+	public ReentrantReadWriteLock.WriteLock getWriteLock()
+	{
+		return reentrantLock.writeLock();
+	}
 	
 	/**
-	 * Get document content, accessed by readers
+	 * Get a deep copy of document content, accessed by readers
 	 * @return the content of the document
 	 */
 	public String readContent()
 	{
-		// Protect the content
-		reentrantLock.readLock().lock();
+		// // Protect the content
+		// reentrantLock.readLock().lock();
 
-		// Deep copy the content
-		String content = new String(this.content);
+		// // Deep copy the content
+		// String content = new String(this.content);
 
-		// Release the lock
-		reentrantLock.readLock().unlock();
+		// // Release the lock
+		// reentrantLock.readLock().unlock();
+
+		// return content;
 
 		return content;
 	}
@@ -66,12 +78,14 @@ public class Document
 	 */
 	public void setContent(String newContent)
 	{
-		// Protect the content
-		reentrantLock.writeLock().lock();
+		// // Protect the content
+		// reentrantLock.writeLock().lock();
+
+		// content = newContent;
+
+		// // Release the lock
+		// reentrantLock.writeLock().unlock();
 
 		content = newContent;
-
-		// Release the lock
-		reentrantLock.writeLock().unlock();
 	}
 }

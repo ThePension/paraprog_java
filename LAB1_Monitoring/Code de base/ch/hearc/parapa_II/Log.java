@@ -29,4 +29,10 @@ public class Log
 	{
 		return person;
 	}
+
+	@Override
+	public String toString() 
+	{
+		return "Log [type=" + type + ", personName=" + person.getName() + ", personRole=" + person.getRole() + "]";
+	}
 }

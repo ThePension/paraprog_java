@@ -83,7 +83,29 @@ public class Person implements Runnable
 				 *            - Le contenu lu dans le document ne doit pas necessairement �tre traite, seul l'operation de lecture importe
 				 * ------------------------------------------------------------------------------------------------------------------------------------
 				 */
+				// Tentative de lecture du document
 				
+				while(timePassed() < durationTime)
+				{
+					// Pause
+					try {
+						Thread.sleep(100);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+
+				// Add the person to the waiting queue
+				// waitingLogger.addWaiting(this, this.durationTime);
+
+				doc.getReadLock().lock();
+
+				waitingLogger.removeWaiting(this, this.durationTime);
+
+				doc.readContent();
+
+				doc.getReadLock().unlock();				
 			}
 			else
 			{
@@ -97,8 +119,32 @@ public class Person implements Runnable
 				 *            - Le nouveau contenu du document importe peu, seule l'acces a l'ecriture du document importe
 				 * ------------------------------------------------------------------------------------------------------------------------------------
 				 */
+
+				// Tentative d'ecriture dans le document
+				while(timePassed() < durationTime)
+				{
+					// Pause
+					try {
+						Thread.sleep(100);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+
+				doc.getWriteLock().lock();
+
+				// Remove the person from the waiting queue
+				waitingLogger.removeWaiting(this, this.durationTime);
+
+				doc.setContent(name);
+
+				doc.getWriteLock().unlock();
 			}
 			
+			// Remove the person from the process queue
+			waitingLogger.finished(this, durationTime);
+
 		}
 		//catch (InterruptedException e) {}     <- a documenter quand necessaire (gestion de l'interruption du programme)
 	}
