@@ -9,6 +9,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 public class WaitingLogger {
 	// Singleton lock
@@ -27,11 +28,11 @@ public class WaitingLogger {
 	 */
 
 	// Log storage
-    private BlockingQueue<Log> logs;
+	private BlockingQueue<Log> logs;
 
-    private BlockingQueue<Person> waitingLists;
-    private BlockingQueue<Person> processingLists;
-    private BlockingQueue<Person> finishedLists;
+	private BlockingQueue<Person> waitingLists;
+	private BlockingQueue<Person> processingLists;
+	private BlockingQueue<Person> finishedLists;
 
 	// Variables
 	private ArrayList<Person> persons;
@@ -48,10 +49,10 @@ public class WaitingLogger {
 		db = Database.getInstance();
 
 		// Initialiser les structures de donnees
-        logs = new LinkedBlockingQueue<>();
-        waitingLists = new LinkedBlockingQueue<>();
-        processingLists = new LinkedBlockingQueue<>();
-        finishedLists = new LinkedBlockingQueue<>();
+		logs = new LinkedBlockingQueue<>();
+		waitingLists = new LinkedBlockingQueue<>();
+		processingLists = new LinkedBlockingQueue<>();
+		finishedLists = new LinkedBlockingQueue<>();
 	}
 
 	/**
@@ -87,17 +88,10 @@ public class WaitingLogger {
 	 * @param timer Time of the operation
 	 */
 	public void addWaiting(Person p, long timer) {
-		try {
-            waitingLists.put(p);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return;
-        }
+		this.sleep(timer);
 
-        this.sleep(timer);
-
-        // Log the operation
-        logs.add(new Log(Log.Type.WAITING, p));
+		// Log the operation
+		logs.add(new Log(Log.Type.WAITING, p));
 	}
 
 	/**
@@ -107,14 +101,6 @@ public class WaitingLogger {
 	 * @param timer Time of the operation
 	 */
 	public void removeWaiting(Person p, long timer) {
-		 try {
-			waitingLists.take();
-			processingLists.put(p);
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			return;
-		}
-
 		this.sleep(timer);
 
 		// Log the operation
@@ -128,21 +114,13 @@ public class WaitingLogger {
 	 * @param timer Time of the operation
 	 */
 	public void finished(Person p, long timer) {
-		/*
-		 * --------------------------------------------
-		 * TODO : Indiquer la fin d'acces a un document
-		 * 
-		 * Remarque : ne pas oublier la concurrence
-		 * --------------------------------------------
-		 */
-
-		 try {
-			processingLists.take();
-			finishedLists.put(p);
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			return;
-		}
+		// /*
+		// * --------------------------------------------
+		// * TODO : Indiquer la fin d'acces a un document
+		// *
+		// * Remarque : ne pas oublier la concurrence
+		// * --------------------------------------------
+		// */
 
 		this.sleep(timer);
 
@@ -167,6 +145,9 @@ public class WaitingLogger {
 
 		nextLog = logs.poll();
 
+		Person p = nextLog.getPerson();
+		Document d = p.getDocument();
+
 		// Treat log type
 		switch (nextLog.getType()) {
 			case WAITING:
@@ -178,7 +159,13 @@ public class WaitingLogger {
 				 * Remarque : cette etape consiste a gerer vos lites d'attentes
 				 * -----------------------------------------------------------------------------
 				 */
-				
+				try {
+					waitingLists.put(p);
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+					return;
+				}
+
 				break;
 			case REMOVE:
 				/*
@@ -188,6 +175,16 @@ public class WaitingLogger {
 				 * Remarque : cette etape consiste a gerer vos lites d'attentes
 				 * -----------------------------------------------------------------------------
 				 */
+				try {
+					// Remove the person from the waiting list
+					waitingLists.remove(p);
+
+					processingLists.put(p);
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+					return;
+				}
+
 				break;
 			case FINISHED:
 				/*
@@ -198,6 +195,15 @@ public class WaitingLogger {
 				 * Remarque : cette etape consiste a gerer vos lites d'attentes
 				 * -----------------------------------------------------------------------------
 				 */
+				try {
+					processingLists.remove(p);
+
+					finishedLists.put(p);
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+					return;
+				}
+
 				break;
 			default:
 				break;
@@ -211,6 +217,31 @@ public class WaitingLogger {
 		 * ---------------------------------------------------
 		 */
 
+		// Get all the waiting persons for the document
+		ArrayList<Person> waitingPersons = waitingLists//
+				.stream()//
+				.filter(person -> person.getDocument().equals(d))
+				.collect(Collectors.toCollection(ArrayList::new));
+
+		// Get all the processing persons for the document
+		ArrayList<Person> processingPersons = processingLists//
+				.stream()//
+				.filter(person -> person.getDocument().equals(d))
+				.collect(Collectors.toCollection(ArrayList::new));
+
+		
+		// Get all the finished persons for the document
+		ArrayList<Person> finishedPersons = finishedLists//
+				.stream()//
+				.filter(person -> person.getDocument().equals(d))
+				.collect(Collectors.toCollection(ArrayList::new));
+
+		// Display the next log
+		System.out.println("Document : " + d.getName());
+		System.out.println("Waiting : " + waitingPersons);
+		System.out.println("Processing : " + processingPersons);
+		System.out.println("Finished : " + finishedPersons);
+		
 		System.out.println(nextLog.toString());
 
 		/*
