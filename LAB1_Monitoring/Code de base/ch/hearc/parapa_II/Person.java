@@ -106,7 +106,7 @@ public class Person implements Runnable
 
 				doc.getReadLock().lock();
 
-				waitingLogger.removeWaiting(this, this.durationTime);
+				waitingLogger.removeWaiting(this, this.timePassed());
 
 				doc.readContent();
 
@@ -140,7 +140,7 @@ public class Person implements Runnable
 				doc.getWriteLock().lock();
 
 				// Remove the person from the waiting queue
-				waitingLogger.removeWaiting(this, this.durationTime);
+				waitingLogger.removeWaiting(this, this.timePassed());
 
 				doc.setContent(name);
 
@@ -148,7 +148,7 @@ public class Person implements Runnable
 			}
 			
 			// Remove the person from the process queue
-			waitingLogger.finished(this, durationTime);
+			waitingLogger.finished(this, timePassed());
 
 		}
 		//catch (InterruptedException e) {}     <- a documenter quand necessaire (gestion de l'interruption du programme)

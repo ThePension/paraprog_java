@@ -97,10 +97,7 @@ public class WaitingLogger {
 	 * @param timer Time of the operation
 	 */
 	public void addWaiting(Person p, long timer) {
-		this.sleep(timer);
-
-		// Log the operation
-		logs.add(new Log(Log.Type.WAITING, p, p.timePassed()));
+		logs.add(new Log(Log.Type.WAITING, p, timer));
 	}
 
 	/**
@@ -110,10 +107,7 @@ public class WaitingLogger {
 	 * @param timer Time of the operation
 	 */
 	public void removeWaiting(Person p, long timer) {
-		this.sleep(timer);
-
-		// Log the operation
-		logs.add(new Log(Log.Type.REMOVE, p, p.timePassed()));
+		logs.add(new Log(Log.Type.REMOVE, p, timer));
 	}
 
 	/**
@@ -123,18 +117,7 @@ public class WaitingLogger {
 	 * @param timer Time of the operation
 	 */
 	public void finished(Person p, long timer) {
-		// /*
-		// * --------------------------------------------
-		// * TODO : Indiquer la fin d'acces a un document
-		// *
-		// * Remarque : ne pas oublier la concurrence
-		// * --------------------------------------------
-		// */
-
-		this.sleep(timer);
-
-		// Log the operation
-		logs.add(new Log(Log.Type.FINISHED, p, p.timePassed()));
+		logs.add(new Log(Log.Type.FINISHED, p, timer));
 	}
 
 	/**
