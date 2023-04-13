@@ -16,6 +16,8 @@ public class Person implements Runnable
 	
 	private WaitingLogger waitingLogger;
 	private Timer timer;
+
+	private String diagramLog;
 	
 	/**
 	 * Constructor
@@ -37,6 +39,9 @@ public class Person implements Runnable
 		// Helpers
 		waitingLogger = WaitingLogger.getInstance();
 		timer = Timer.getInstance();
+
+		// Diagram
+		diagramLog = this.getNameAndRole() + " : ";
 	}
 
 	/**
@@ -197,5 +202,30 @@ public class Person implements Runnable
 	public long getDurationTime()
 	{
 		return durationTime;
+	}
+
+	@Override
+	public String toString()
+	{
+		return " - " + name + " (" + role + ") start : " + startingTime / 1000l + " / duration : " + durationTime / 1000l + " (" + doc.getName() + ")" ;
+	}
+
+	public void display()
+	{
+		System.out.println(this);
+	}
+
+	public String getNameAndRole()
+	{
+		return name + " (" + role.toString().charAt(0) + ")";
+	}
+
+	public void updateDiagram(String nextpart){
+		diagramLog += nextpart;
+	}
+
+	public String getDiagramLog()
+	{
+		return diagramLog;
 	}
 }

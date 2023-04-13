@@ -1,7 +1,9 @@
 package ch.hearc.parapa_II;
 
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList; // changer en list 
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 public class Database 
 {
@@ -74,5 +76,13 @@ public class Database
 		}
 		
 		return null;
+	}
+
+	/**
+	 * Get all documents
+	 * @return a Set containing all documents
+	 */
+	public Set<Document> getDocuments() {
+		return documents.stream().collect(Collectors.toSet());
 	}
 }

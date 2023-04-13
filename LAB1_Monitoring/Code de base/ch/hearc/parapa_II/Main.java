@@ -89,10 +89,10 @@ public class Main {
 				}
 
 				if (input.equals("NEXT") || input.equals("N") || input.equals("")) {
-					waitingLogger.popNextLog();
+					if (!waitingLogger.popNextLog()) {
+						System.out.println("No logs available at the moment");
+					}
 				}
-
-				System.out.println("Iteration");
 			}
 
 			// Stop all threads

@@ -4,17 +4,20 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class WaitingLogger {
 	// Singleton lock
 	private final static ReentrantLock lockSingleton = new ReentrantLock();
 	private static WaitingLogger instance;
+	private static final String DIAGRAM_SEPARATOR = "----------";
 
 	/*
 	 * -----------------------------------------------------------------------------
@@ -36,11 +39,15 @@ public class WaitingLogger {
 
 	// Variables
 	private ArrayList<Person> persons;
+	private Set<Document> documents;
 
 	// Singletons
 	private Database db;
 
 	private FutureTask<String> consoleFuture;
+
+	// Diagrams tools : contain the last time a person finished to access a document
+	private int diagramIndex = 0;
 
 	/**
 	 * Constructor
@@ -53,6 +60,8 @@ public class WaitingLogger {
 		waitingLists = new LinkedBlockingQueue<>();
 		processingLists = new LinkedBlockingQueue<>();
 		finishedLists = new LinkedBlockingQueue<>();
+
+		documents = db.getDocuments();
 	}
 
 	/**
@@ -91,7 +100,7 @@ public class WaitingLogger {
 		this.sleep(timer);
 
 		// Log the operation
-		logs.add(new Log(Log.Type.WAITING, p));
+		logs.add(new Log(Log.Type.WAITING, p, p.timePassed()));
 	}
 
 	/**
@@ -104,7 +113,7 @@ public class WaitingLogger {
 		this.sleep(timer);
 
 		// Log the operation
-		logs.add(new Log(Log.Type.REMOVE, p));
+		logs.add(new Log(Log.Type.REMOVE, p, p.timePassed()));
 	}
 
 	/**
@@ -125,83 +134,80 @@ public class WaitingLogger {
 		this.sleep(timer);
 
 		// Log the operation
-		logs.add(new Log(Log.Type.FINISHED, p));
+		logs.add(new Log(Log.Type.FINISHED, p, p.timePassed()));
 	}
 
 	/**
 	 * Called by the user on typing 'NEXT', display the next operation logged
 	 */
-	public void popNextLog() {
-		Log nextLog = null;
+	public boolean popNextLog() {
+		if (logs.size() == 0)
+			return false;
 
-		/*
-		 * -----------------------------------------------------------------------------
-		 * TODO : Recuperer le prochain log du stockage pour le traitement
-		 * 
-		 * Remarque : a vous de definir votre type de stockage selon l'UI et
-		 * l'infrastructure que vous voulez utiliser
-		 * -----------------------------------------------------------------------------
-		 */
-
-		nextLog = logs.poll();
+		Log nextLog = logs.poll();
 
 		Person p = nextLog.getPerson();
-		Document d = p.getDocument();
 
 		// Treat log type
 		switch (nextLog.getType()) {
 			case WAITING:
-				/*
-				 * -----------------------------------------------------------------------------
-				 * TODO : Gestion d'un log indiquant l'attente d'un thread sur sa ressource
-				 * partagee
-				 * 
-				 * Remarque : cette etape consiste a gerer vos lites d'attentes
-				 * -----------------------------------------------------------------------------
-				 */
 				try {
 					waitingLists.put(p);
+
+					// Calculate the space gap based on the starting time
+					int spaceGap = (int) (p.getStartingTime()) / 1000;
+
+					// Update the diagram with " " * spaceGap + "W"
+					p.updateDiagram(" ".repeat(spaceGap * 5) + "W");
+
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
-					return;
+					return false;
 				}
 
 				break;
 			case REMOVE:
-				/*
-				 * -----------------------------------------------------------------------------
-				 * TODO : Gestion d'un log indiquant l'acces d'un thread a sa ressource partagee
-				 * 
-				 * Remarque : cette etape consiste a gerer vos lites d'attentes
-				 * -----------------------------------------------------------------------------
-				 */
 				try {
 					// Remove the person from the waiting list
 					waitingLists.remove(p);
 
 					processingLists.put(p);
+
+					// If the person has been waiting to access the document
+					if (nextLog.getElapsedTime() > 0) {
+						// Calculate the space gap based on the starting time
+						int spaceGap = (int) (nextLog.getElapsedTime()) / 1000;
+
+						// Update the diagram with " " * spaceGap + "W"
+						p.updateDiagram("-".repeat(spaceGap * 5) + "T");
+					} else {
+						// Else, if the person is the first to access the document
+						// Calculate the space gap based on the starting time
+						int spaceGap = (int) (p.getStartingTime()) / 1000;
+
+						// Update the diagram with " " * spaceGap + "W"
+						p.updateDiagram(" ".repeat(spaceGap * 5) + "W");
+					}
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
-					return;
+					return false;
 				}
 
 				break;
 			case FINISHED:
-				/*
-				 * -----------------------------------------------------------------------------
-				 * TODO : Gestion d'un log indiquant la fin d'un thread et la liberation de
-				 * l'acces a sa ressource
-				 * 
-				 * Remarque : cette etape consiste a gerer vos lites d'attentes
-				 * -----------------------------------------------------------------------------
-				 */
 				try {
 					processingLists.remove(p);
 
 					finishedLists.put(p);
+
+					// Calculate the space gap based on the starting time
+					int spaceGap = (int) (p.getDurationTime()) / 1000;
+
+					// Update the diagram with "-" * spaceGap + "W"
+					p.updateDiagram("-".repeat(spaceGap * 5) + "F");
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
-					return;
+					return false;
 				}
 
 				break;
@@ -217,36 +223,26 @@ public class WaitingLogger {
 		 * ---------------------------------------------------
 		 */
 
-		// Get all the waiting persons for the document
-		ArrayList<Person> waitingPersons = waitingLists//
-				.stream()//
-				.filter(person -> person.getDocument().equals(d))
-				.collect(Collectors.toCollection(ArrayList::new));
+		System.out.println("-- Threads list -------------------------------------\n");
 
-		// Get all the processing persons for the document
-		ArrayList<Person> processingPersons = processingLists//
-				.stream()//
-				.filter(person -> person.getDocument().equals(d))
-				.collect(Collectors.toCollection(ArrayList::new));
+		// Display all the threads (persons)
+		persons.stream().forEach(Person::display);
 
-		
-		// Get all the finished persons for the document
-		ArrayList<Person> finishedPersons = finishedLists//
-				.stream()//
-				.filter(person -> person.getDocument().equals(d))
-				.collect(Collectors.toCollection(ArrayList::new));
+		System.out.println("\n-- Queues state -------------------------------------\n");
 
-		// Display the next log
-		System.out.println("Document : " + d.getName());
-		System.out.println("Waiting : " + waitingPersons);
-		System.out.println("Processing : " + processingPersons);
-		System.out.println("Finished : " + finishedPersons);
-		
-		System.out.println(nextLog.toString());
+		Consumer<Document> displayDocumentQueueStateConsumer = createDisplayDocumentQueueStateConsumer();
+
+		// Foreach document, display the waiting and processing persons
+		documents.forEach(displayDocumentQueueStateConsumer);
+
+		System.out.println("\n-- Diagram ---------------------------------------------\n");
+
+		System.out.println("W : Waiting / R : Remove from waiting / T : W + R / F : Finished\n");
+
+		persons.stream().map(Person::getDiagramLog).forEach(System.out::println);
 
 		/*
 		 * -----------------------------------------------------------------------------
-		 * ------------------------------------------------------
 		 * TODO : Controller si il s'agit du dernier log, arreter le programme si c'est
 		 * le cas
 		 * 
@@ -254,21 +250,74 @@ public class WaitingLogger {
 		 * (2 conditions doivent etre reunies : logs == 0 et nombre de threads termines
 		 * correspondant aux nombre total de personnes)
 		 * -----------------------------------------------------------------------------
-		 * ------------------------------------------------------
 		 */
 		if (logs.size() == 0 && finishedLists.size() == persons.size()) {
-			// TODO : Interrompre consoleFuture
 			consoleFuture.cancel(true);
 		}
 
+		return true;
 	}
 
 	private void sleep(long ms) {
 		try {
 			Thread.sleep(ms);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
+
+	private Consumer<Document> createDisplayDocumentQueueStateConsumer() {
+		return document -> {
+			// Get all the waiting persons for the document
+			ArrayList<Person> waitingPersons2 = waitingLists//
+					.stream()//
+					.parallel()
+					.filter(person -> person.getDocument().equals(document))
+					.collect(Collectors.toCollection(ArrayList::new));
+
+			// Get all the processing persons for the document
+			ArrayList<Person> processingPersons2 = processingLists//
+					.stream()//
+					.parallel()
+					.filter(person -> person.getDocument().equals(document))
+					.collect(Collectors.toCollection(ArrayList::new));
+
+			// Get all the finished persons for the document
+			ArrayList<Person> finishedPersons2 = finishedLists//
+					.stream()//
+					.parallel()
+					.filter(person -> person.getDocument().equals(document))
+					.collect(Collectors.toCollection(ArrayList::new));
+
+			System.out.println("\n" + document.getName() + " (WAITING): "
+					+ waitingPersons2.stream().map(Person::getNameAndRole).collect(Collectors.joining(", ")));
+			System.out.println(document.getName() + " (PROCESSING): "
+					+ processingPersons2.stream().map(Person::getNameAndRole).collect(Collectors.joining(", ")));
+			System.out.println(document.getName() + " (FINISHED): "
+					+ finishedPersons2.stream().map(Person::getNameAndRole).collect(Collectors.joining(", ")));
+		};
+	}
+
+	// private Consumer<Person> createDisplayPersonDiagramConsumer() {
+	// return person -> {
+	// System.out.print("\n" + person.getNameAndRole() + " : ");
+
+	// // Check if the person is the last entering the waiting list (blockingqueue)
+	// if (waitingLists.peek() != null && waitingLists.peek().equals(person)) {
+	// person.updateDiagram("W");
+	// }
+
+	// // Check if the person is processing the document
+	// if (processingLists.contains(person)) {
+	// person.updateDiagram("W");
+	// }
+
+	// // Check if the person has finished processing the document
+	// if (finishedLists.contains(person)) {
+	// person.updateDiagram(DIAGRAM_SEPARATOR + "T");
+	// }
+
+	// System.out.println(person.getDiagramLog());
+	// };
+	// }
 }

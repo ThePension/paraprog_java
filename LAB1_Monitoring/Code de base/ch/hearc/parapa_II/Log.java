@@ -6,16 +6,18 @@ public class Log
 	
 	private Type type;
 	private Person person;
+	private long elapsedTime;
 	
 	/**
 	 * Constructor
 	 * @param type Type of the log
 	 * @param person Person logged
 	 */
-	public Log(Type type, Person person)
+	public Log(Type type, Person person, long elapsedTime)
 	{
 		this.type = type;
 		this.person = person;
+		this.elapsedTime = elapsedTime;
 	}
 	
 	// Getters
@@ -28,6 +30,11 @@ public class Log
 	public Person getPerson()
 	{
 		return person;
+	}
+
+	public long getElapsedTime()
+	{
+		return elapsedTime;
 	}
 
 	@Override
