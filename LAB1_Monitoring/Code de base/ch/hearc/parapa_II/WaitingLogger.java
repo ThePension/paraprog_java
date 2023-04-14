@@ -120,9 +120,6 @@ public class WaitingLogger {
 
 		Person p = nextLog.getPerson();
 
-		// Update the longest elapsed time
-		longestElapsedTime = Math.max(longestElapsedTime, nextLog.getElapsedTime());
-
 		// Treat log type
 		switch (nextLog.getType()) {
 			case WAITING:
@@ -134,6 +131,9 @@ public class WaitingLogger {
 
 					// Update the diagram with " " * spaceGap + "W"
 					p.updateDiagram(DIAGRAM_SEPARATOR_CHAR.repeat(spaceGap) + "W");
+
+					// Update the longest elapsed time
+					longestElapsedTime = Math.max(longestElapsedTime, p.getStartingTime());
 
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
@@ -154,6 +154,9 @@ public class WaitingLogger {
 					// Update the diagram with " " * spaceGap + "W"
 					p.updateDiagram(DIAGRAM_SEPARATOR_CHAR.repeat(spaceGap) + "T");
 
+					// Update the longest elapsed time
+					longestElapsedTime = Math.max(longestElapsedTime, nextLog.getElapsedTime());
+
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 					return false;
@@ -171,6 +174,9 @@ public class WaitingLogger {
 
 					// Update the diagram with "-" * spaceGap + "W"
 					p.updateDiagram(DIAGRAM_SEPARATOR_CHAR.repeat(spaceGap) + "F");
+
+					// Update the longest elapsed time
+					longestElapsedTime = Math.max(longestElapsedTime, p.getDurationTime());
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 					return false;
@@ -186,7 +192,7 @@ public class WaitingLogger {
 		// Display all the threads (persons)
 		persons.stream().map(Person::toString).forEach(System.out::println);
 
-		System.out.println("\n-- Queues state -------------------------------------\n");
+		System.out.println("\n-- Queues state -------------------------------------");
 
 		Consumer<Document> displayDocumentQueueStateConsumer = createDisplayDocumentQueueStateConsumer();
 
@@ -197,8 +203,10 @@ public class WaitingLogger {
 
 		System.out.println("W : Waiting / R : Remove from waiting / T : W + R / F : Finished\n");
 
+		System.out.println("Longest elapsed time : " + (int) (longestElapsedTime / 1000.0) + 1 + "s");
+
 		// Display graduation
-		System.out.println(this.getDiagramGraduatedAxis(15, (int) (longestElapsedTime / 1000.0)));
+		System.out.println(this.getDiagramGraduatedAxis(15, 10));
 
 		persons.stream().map(Person::getDiagramLog).forEach(System.out::println);
 
@@ -261,6 +269,7 @@ public class WaitingLogger {
 
 	/**
 	 * Calculate the space gap based on the time
+	 * 
 	 * @param time in milliseconds
 	 * @return the space gap
 	 */
@@ -278,13 +287,14 @@ public class WaitingLogger {
 
 		gap += additionalGap;
 
-		return (int)gap;
+		return (int) gap;
 	}
 
 	/**
 	 * Get the diagram graduated axis
+	 * 
 	 * @param leftGap the left gap
-	 * @param nbSec the number of seconds
+	 * @param nbSec   the number of seconds
 	 * @return the diagram graduated axis as a string
 	 */
 	private String getDiagramGraduatedAxis(int leftGap, int nbSec) {
