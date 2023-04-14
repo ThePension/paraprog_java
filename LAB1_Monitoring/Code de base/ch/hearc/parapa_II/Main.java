@@ -3,8 +3,6 @@ package ch.hearc.parapa_II;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 public class Main {
 	/**
@@ -48,13 +46,6 @@ public class Main {
 			// Start threads
 			ArrayList<Thread> threads = new ArrayList<Thread>();
 
-			// ArrayList<Thread> threads = persons//
-			// .stream()//
-			// .parallel()//
-			// .map(Thread::new)//
-			// .peek(Thread::start)//
-			// .collect(Collectors.toCollection(ArrayList<Thread>::new));
-
 			for (Person person : persons) {
 				Thread thread = new Thread(person);
 				thread.setName(person.getName());
@@ -80,8 +71,6 @@ public class Main {
 				 * -----------------------------------------------------------------------------
 				 */
 
-				// waitingLogger.popNextLog();
-				// Get user input
 				String input = System.console().readLine();
 
 				if (input.equals("EXIT")) {

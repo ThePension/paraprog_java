@@ -1,34 +1,20 @@
 package ch.hearc.parapa_II;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 
 public class WaitingLogger {
 	// Singleton lock
 	private final static ReentrantLock lockSingleton = new ReentrantLock();
 	private static WaitingLogger instance;
-	private static final String DIAGRAM_SEPARATOR = "----------";
-
-	/*
-	 * -----------------------------------------------------------------------------
-	 * ------------------
-	 * TODO : Prevoir un stockage concurrent pour les logs et pour les listes
-	 * d'attente des documents
-	 * 
-	 * Remarque : java.util.concurrent contient tout ce qu'il faut
-	 * -----------------------------------------------------------------------------
-	 * ------------------
-	 */
+	private static final String DIAGRAM_SEPARATOR_CHAR = "-";
 
 	// Log storage
 	private BlockingQueue<Log> logs;
@@ -46,8 +32,8 @@ public class WaitingLogger {
 
 	private FutureTask<String> consoleFuture;
 
-	// Diagrams tools : contain the last time a person finished to access a document
-	private int diagramIndex = 0;
+	private long longestElapsedTime;
+	private int stepPerSecDiagram;
 
 	/**
 	 * Constructor
@@ -62,6 +48,9 @@ public class WaitingLogger {
 		finishedLists = new LinkedBlockingQueue<>();
 
 		documents = db.getDocuments();
+
+		longestElapsedTime = 0;
+		stepPerSecDiagram = 10;
 	}
 
 	/**
@@ -131,6 +120,9 @@ public class WaitingLogger {
 
 		Person p = nextLog.getPerson();
 
+		// Update the longest elapsed time
+		longestElapsedTime = Math.max(longestElapsedTime, nextLog.getElapsedTime());
+
 		// Treat log type
 		switch (nextLog.getType()) {
 			case WAITING:
@@ -138,10 +130,10 @@ public class WaitingLogger {
 					waitingLists.put(p);
 
 					// Calculate the space gap based on the starting time
-					int spaceGap = (int) (p.getStartingTime()) / 1000;
+					int spaceGap = getSpaceGap(p.getStartingTime());
 
 					// Update the diagram with " " * spaceGap + "W"
-					p.updateDiagram(" ".repeat(spaceGap * 5) + "W");
+					p.updateDiagram(DIAGRAM_SEPARATOR_CHAR.repeat(spaceGap) + "W");
 
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
@@ -156,21 +148,12 @@ public class WaitingLogger {
 
 					processingLists.put(p);
 
-					// If the person has been waiting to access the document
-					if (nextLog.getElapsedTime() > 0) {
-						// Calculate the space gap based on the starting time
-						int spaceGap = (int) (nextLog.getElapsedTime()) / 1000;
+					// Calculate the space gap based on the starting time
+					int spaceGap = getSpaceGap(nextLog.getElapsedTime());
 
-						// Update the diagram with " " * spaceGap + "W"
-						p.updateDiagram("-".repeat(spaceGap * 5) + "T");
-					} else {
-						// Else, if the person is the first to access the document
-						// Calculate the space gap based on the starting time
-						int spaceGap = (int) (p.getStartingTime()) / 1000;
+					// Update the diagram with " " * spaceGap + "W"
+					p.updateDiagram(DIAGRAM_SEPARATOR_CHAR.repeat(spaceGap) + "T");
 
-						// Update the diagram with " " * spaceGap + "W"
-						p.updateDiagram(" ".repeat(spaceGap * 5) + "W");
-					}
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 					return false;
@@ -184,10 +167,10 @@ public class WaitingLogger {
 					finishedLists.put(p);
 
 					// Calculate the space gap based on the starting time
-					int spaceGap = (int) (p.getDurationTime()) / 1000;
+					int spaceGap = getSpaceGap(p.getDurationTime());
 
 					// Update the diagram with "-" * spaceGap + "W"
-					p.updateDiagram("-".repeat(spaceGap * 5) + "F");
+					p.updateDiagram(DIAGRAM_SEPARATOR_CHAR.repeat(spaceGap) + "F");
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 					return false;
@@ -198,18 +181,10 @@ public class WaitingLogger {
 				break;
 		}
 
-		/*
-		 * ---------------------------------------------------
-		 * TODO : Affichage du prochain log sur l'UI / console
-		 * 
-		 * Remarque : -
-		 * ---------------------------------------------------
-		 */
-
 		System.out.println("-- Threads list -------------------------------------\n");
 
 		// Display all the threads (persons)
-		persons.stream().forEach(Person::display);
+		persons.stream().map(Person::toString).forEach(System.out::println);
 
 		System.out.println("\n-- Queues state -------------------------------------\n");
 
@@ -221,6 +196,9 @@ public class WaitingLogger {
 		System.out.println("\n-- Diagram ---------------------------------------------\n");
 
 		System.out.println("W : Waiting / R : Remove from waiting / T : W + R / F : Finished\n");
+
+		// Display graduation
+		System.out.println(this.getDiagramGraduatedAxis(15, (int) (longestElapsedTime / 1000.0)));
 
 		persons.stream().map(Person::getDiagramLog).forEach(System.out::println);
 
@@ -241,14 +219,13 @@ public class WaitingLogger {
 		return true;
 	}
 
-	private void sleep(long ms) {
-		try {
-			Thread.sleep(ms);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-	}
-
+	/**
+	 * Create a consumer to display the waiting and processing persons for a
+	 * document
+	 * 
+	 * @return Consumer<Document> to display the waiting and processing persons for
+	 *         a document
+	 */
 	private Consumer<Document> createDisplayDocumentQueueStateConsumer() {
 		return document -> {
 			// Get all the waiting persons for the document
@@ -272,6 +249,7 @@ public class WaitingLogger {
 					.filter(person -> person.getDocument().equals(document))
 					.collect(Collectors.toCollection(ArrayList::new));
 
+			// Display the waiting and processing persons for the document
 			System.out.println("\n" + document.getName() + " (WAITING): "
 					+ waitingPersons2.stream().map(Person::getNameAndRole).collect(Collectors.joining(", ")));
 			System.out.println(document.getName() + " (PROCESSING): "
@@ -281,26 +259,46 @@ public class WaitingLogger {
 		};
 	}
 
-	// private Consumer<Person> createDisplayPersonDiagramConsumer() {
-	// return person -> {
-	// System.out.print("\n" + person.getNameAndRole() + " : ");
+	/**
+	 * Calculate the space gap based on the time
+	 * @param time in milliseconds
+	 * @return the space gap
+	 */
+	private int getSpaceGap(long time) {
+		double timeSec = time / 1000.0;
 
-	// // Check if the person is the last entering the waiting list (blockingqueue)
-	// if (waitingLists.peek() != null && waitingLists.peek().equals(person)) {
-	// person.updateDiagram("W");
-	// }
+		double gap = timeSec * (double) stepPerSecDiagram;
 
-	// // Check if the person is processing the document
-	// if (processingLists.contains(person)) {
-	// person.updateDiagram("W");
-	// }
+		// Round the gap to the nearest stepPerSecDiagram
+		// If the gap is 3.7 and stepPerSecDiagram is 2, the timeSecRounded will be 4
+		double roundedGap = Math.round(gap / (double) stepPerSecDiagram) * stepPerSecDiagram;
 
-	// // Check if the person has finished processing the document
-	// if (finishedLists.contains(person)) {
-	// person.updateDiagram(DIAGRAM_SEPARATOR + "T");
-	// }
+		// Add the left gap based on the number of seconds display in the diagram
+		double additionalGap = roundedGap / (double) stepPerSecDiagram;
 
-	// System.out.println(person.getDiagramLog());
-	// };
-	// }
+		gap += additionalGap;
+
+		return (int)gap;
+	}
+
+	/**
+	 * Get the diagram graduated axis
+	 * @param leftGap the left gap
+	 * @param nbSec the number of seconds
+	 * @return the diagram graduated axis as a string
+	 */
+	private String getDiagramGraduatedAxis(int leftGap, int nbSec) {
+		StringBuilder sb = new StringBuilder();
+
+		// Add the left gap
+		sb.append(" ".repeat(leftGap));
+
+		LongStream.range(0, nbSec).forEach(i -> {
+			sb.append(i);
+
+			sb.append(" ".repeat(stepPerSecDiagram));
+		});
+
+		return sb.toString();
+	}
 }

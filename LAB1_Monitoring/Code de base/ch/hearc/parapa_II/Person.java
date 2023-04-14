@@ -48,29 +48,10 @@ public class Person implements Runnable {
 	public void run() {
 		// try <- docummentez quand necessaire
 		{
-			/*
-			 * -----------------------------------------------------------------------------
-			 * ------------------
-			 * TODO : Faire patienter la personne tant que le temps écoule ne depasse pas
-			 * son temps de depart.
-			 * Une fois lance, ajoutez la personne dans la file d'attente d'acces à son
-			 * document
-			 * 
-			 * Remarque : addWaiting du WaitingLogger
-			 * -----------------------------------------------------------------------------
-			 * ------------------
-			 */
-
 			// Faire patienter la personne tant que le temps ecoule ne depasse pas son temps
 			// de depart
-			while (timePassed() < startingTime) {
-				// Pause
-				try {
-					Thread.sleep(100);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
+			this.sleep(this.startingTime);
+
 
 			// Une fois lance, ajoutez la personne dans la file d'attente d'acces a son
 			// document
@@ -100,7 +81,7 @@ public class Person implements Runnable {
 
 				doc.readContent();
 
-				this.waitProcessingTime();
+				this.sleep(this.durationTime);
 
 				doc.getReadLock().unlock();
 			} else {
@@ -126,7 +107,7 @@ public class Person implements Runnable {
 
 				doc.setContent(name);
 
-				this.waitProcessingTime();
+				this.sleep(this.durationTime);
 
 				doc.getWriteLock().unlock();
 			}
@@ -148,10 +129,10 @@ public class Person implements Runnable {
 		return System.currentTimeMillis() - timer.startTime;
 	}
 
-	private void waitProcessingTime() {
+	private void sleep(long timeMs) {
 		// Pause
 		try {
-			Thread.sleep(durationTime);
+			Thread.sleep(timeMs);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -181,12 +162,8 @@ public class Person implements Runnable {
 
 	@Override
 	public String toString() {
-		return " - " + name + " (" + role + ") start : " + startingTime / 1000l + " / duration : "
-				+ durationTime / 1000l + " (" + doc.getName() + ")";
-	}
-
-	public void display() {
-		System.out.println(this);
+		return " - " + name + " (" + role + ") start : " + startingTime + " / duration : "
+				+ durationTime + " (" + doc.getName() + ")";
 	}
 
 	public String getNameAndRole() {
