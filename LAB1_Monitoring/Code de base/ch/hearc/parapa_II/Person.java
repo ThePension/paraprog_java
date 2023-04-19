@@ -49,7 +49,7 @@ public class Person implements Runnable {
 	 */
 	@Override
 	public void run() {
-		// try <- docummentez quand necessaire
+		try
 		{
 			// Faire patienter la personne tant que le temps ecoule ne depasse pas son temps
 			// de depart
@@ -63,20 +63,6 @@ public class Person implements Runnable {
 			long startProcessingTime = 0;
 
 			if (role == Role.READER) {
-				/*
-				 * -----------------------------------------------------------------------------
-				 * TODO : Tentative de lecture du document.
-				 * 
-				 * Remarque : - Penser à faire dormir le thread quand il a acces au document
-				 * (durationTime)
-				 * - Utiliser les locks du document
-				 * - Penser au fait que le programme doit pouvoir s'arreter a tout moment (ainsi
-				 * que tous les threads lecteurs / redacteurs)
-				 * - Le contenu lu dans le document ne doit pas necessairement �tre traite, seul
-				 * l'operation de lecture importe
-				 * -----------------------------------------------------------------------------
-				 */
-
 				// Tentative de lecture du document
 				doc.getReadLock().lock();
 
@@ -93,20 +79,6 @@ public class Person implements Runnable {
 
 				doc.getReadLock().unlock();
 			} else {
-				/*
-				 * -----------------------------------------------------------------------------
-				 * TODO : Tentative d'ecriture dans le document.
-				 * 
-				 * Remarque : - Penser a faire dormir le thread quand il a acces au document
-				 * (durationTime)
-				 * - Utiliser les locks du document
-				 * - Penser au fait que le programme doit pouvoir s'arreter a tout moment (ainsi
-				 * que tous les threads lecteurs / redacteurs)
-				 * - Le nouveau contenu du document importe peu, seule l'acces a l'ecriture du
-				 * document importe
-				 * -----------------------------------------------------------------------------
-				 */
-
 				// Tentative d'ecriture dans le document
 				doc.getWriteLock().lock();
 
@@ -129,12 +101,13 @@ public class Person implements Runnable {
 
 			// Remove the person from the process queue
 			waitingLogger.finished(this, timeSpendInProcessing);
-
-
-
 		}
-		// catch (InterruptedException e) {} <- a documenter quand necessaire (gestion
-		// de l'interruption du programme)
+		catch (Exception e)
+		{
+			e.printStackTrace();
+
+			return;
+		}
 	}
 
 	/**
@@ -157,31 +130,59 @@ public class Person implements Runnable {
 
 	// Getters
 
+	/**
+	 * Get the name of the person
+	 * @return the name of the person
+	 */
 	public String getName() {
 		return name;
 	}
 
+	/**
+	 * Get the role of the person
+	 * @return the role of the person
+	 */
 	public Role getRole() {
 		return role;
 	}
 
+	/**
+	 * Get the document treated by the person
+	 * @return the document treated by the person
+	 */
 	public Document getDocument() {
 		return doc;
 	}
 
+	/**
+	 * Get the starting time of the person
+	 * @return the starting time of the person
+	 */
 	public long getStartingTime() {
 		return startingTime;
 	}
 
+	/**
+	 * Get the duration time of the person
+	 * @return the duration time of the person
+	 */
 	public long getDurationTime() {
 		return durationTime;
 	}
 
+	/**
+	 * Get the time spent in waiting
+	 * @return the time spent in waiting
+	 */
 	public long getTimeSpentInWaiting()
 	{
 		return timeSpentInWaiting;
 	}
 
+	/**
+	 * Get the time spent in processing
+	 * @return the time spent in processing
+	 */
 	public long getTimeSpentInProcessing()
 	{
 		return timeSpendInProcessing;
@@ -193,14 +194,26 @@ public class Person implements Runnable {
 				+ durationTime + " (" + doc.getColor().getColoredText(doc.getName()) + ")";
 	}
 
+	/**
+	 * Get the name and the role of the person
+	 * @return the name and the role of the person
+	 */
 	public String getNameAndRole() {
 		return name + " (" + role.toString().charAt(0) + ")";
 	}
 
+	/**
+	 * Get the diagram log
+	 * @return the diagram log
+	 */
 	public void updateDiagram(String nextpart) {
 		diagramLog += nextpart;
 	}
 
+	/**
+	 * Get the diagram log
+	 * @return the diagram log
+	 */
 	public String getDiagramLog() {
 		return this.doc.getColor().getColoredText(diagramLog);
 	}

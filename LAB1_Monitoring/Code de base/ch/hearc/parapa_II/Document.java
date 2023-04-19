@@ -61,18 +61,7 @@ public class Document
 	 */
 	public String readContent()
 	{
-		// // Protect the content
-		// reentrantLock.readLock().lock();
-
-		// // Deep copy the content
-		// String content = new String(this.content);
-
-		// // Release the lock
-		// reentrantLock.readLock().unlock();
-
-		// return content;
-
-		return content;
+		return new String(content);
 	}
 	
 	/**
@@ -81,14 +70,6 @@ public class Document
 	 */
 	public void setContent(String newContent)
 	{
-		// // Protect the content
-		// reentrantLock.writeLock().lock();
-
-		// content = newContent;
-
-		// // Release the lock
-		// reentrantLock.writeLock().unlock();
-
 		content = newContent;
 	}
 

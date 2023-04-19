@@ -20,18 +20,28 @@ public class Log
 		this.elapsedTime = elapsedTime;
 	}
 	
-	// Getters
-	
+	/**
+	 * Get the type of the log
+	 * @return the type of the log
+	 */
 	public Type getType()
 	{
 		return type;
 	}
 	
+	/**
+	 * Get the person logged
+	 * @return the person logged
+	 */
 	public Person getPerson()
 	{
 		return person;
 	}
 
+	/**
+	 * Get the elapsed time of the operation
+	 * @return the elapsed time of the operation
+	 */
 	public long getElapsedTime()
 	{
 		return elapsedTime;
