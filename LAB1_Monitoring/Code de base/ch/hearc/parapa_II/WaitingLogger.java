@@ -127,10 +127,10 @@ public class WaitingLogger {
 					waitingLists.put(p);
 
 					// Calculate the space gap based on the starting time
-					int spaceGap = getSpaceGap(p.getStartingTime());
+					int spaceGap = getSpaceGap(p.getStartingTime(), p.getDiagramLog());
 
 					// Update the diagram with " " * spaceGap + "W"
-					p.updateDiagram(DIAGRAM_SEPARATOR_CHAR.repeat(spaceGap) + "W");
+					p.updateDiagram(" ".repeat(spaceGap) + "W");
 
 					// Update the longest elapsed time
 					longestElapsedTime = Math.max(longestElapsedTime, p.getStartingTime());
@@ -149,7 +149,7 @@ public class WaitingLogger {
 					processingLists.put(p);
 
 					// Calculate the space gap based on the starting time
-					int spaceGap = getSpaceGap(nextLog.getElapsedTime());
+					int spaceGap = getSpaceGap(nextLog.getElapsedTime(), p.getDiagramLog()) + 1;
 
 					// Update the diagram with " " * spaceGap + "W"
 					p.updateDiagram(DIAGRAM_SEPARATOR_CHAR.repeat(spaceGap) + "T");
@@ -170,7 +170,9 @@ public class WaitingLogger {
 					finishedLists.put(p);
 
 					// Calculate the space gap based on the starting time
-					int spaceGap = getSpaceGap(p.getDurationTime());
+					int spaceGap = getSpaceGap(p.getDurationTime(), p.getDiagramLog());
+
+					if (spaceGap > 0) spaceGap--;
 
 					// Update the diagram with "-" * spaceGap + "W"
 					p.updateDiagram(DIAGRAM_SEPARATOR_CHAR.repeat(spaceGap) + "F");
@@ -194,10 +196,8 @@ public class WaitingLogger {
 
 		System.out.println("\n-- Queues state -------------------------------------");
 
-		Consumer<Document> displayDocumentQueueStateConsumer = createDisplayDocumentQueueStateConsumer();
-
 		// Foreach document, display the waiting and processing persons
-		documents.forEach(displayDocumentQueueStateConsumer);
+		documents.forEach(createDisplayDocumentQueueStateConsumer());
 
 		System.out.println("\n-- Diagram ---------------------------------------------\n");
 
@@ -273,7 +273,7 @@ public class WaitingLogger {
 	 * @param time in milliseconds
 	 * @return the space gap
 	 */
-	private int getSpaceGap(long time) {
+	private int getSpaceGap(long time, String diagram) {
 		double timeSec = time / 1000.0;
 
 		double gap = timeSec * (double) stepPerSecDiagram;
@@ -287,7 +287,16 @@ public class WaitingLogger {
 
 		gap += additionalGap;
 
-		return (int) gap;
+		// Add 1 to the gap if the diagram contains W ou T, and 2 if it contains both
+		// if (diagram.contains("W")) {
+		// 	gap += 1;
+		// }
+
+		// if (!diagram.contains("T")) {
+		// 	gap += 1d;
+		// }
+
+		return (int) Math.ceil(gap);
 	}
 
 	/**

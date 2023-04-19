@@ -105,9 +105,9 @@ public class Main {
 		ArrayList<Person> persons = new ArrayList<Person>();
 
 		long minStartingTime = 0;
-		long maxStartingTime = 5000;
+		long maxStartingTime = 2000;
 		long minDuration = 1000;
-		long maxDuration = 5000;
+		long maxDuration = 3000;
 		double probabilityReader = 0.5f;
 
 		for (int i = 0; i < nbPersons; i++) {
