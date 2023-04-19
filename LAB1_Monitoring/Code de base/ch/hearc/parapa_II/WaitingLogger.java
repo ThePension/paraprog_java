@@ -198,16 +198,7 @@ public class WaitingLogger {
 
 		persons.stream().map(Person::getDiagramLog).forEach(System.out::println);
 
-		/*
-		 * -----------------------------------------------------------------------------
-		 * TODO : Controller si il s'agit du dernier log, arreter le programme si c'est
-		 * le cas
-		 * 
-		 * Remarque : interrompre consoleFuture
-		 * (2 conditions doivent etre reunies : logs == 0 et nombre de threads termines
-		 * correspondant aux nombre total de personnes)
-		 * -----------------------------------------------------------------------------
-		 */
+		// Cancel the main thread if all the persons are finished
 		if (logs.size() == 0 && finishedLists.size() == persons.size()) {
 			consoleFuture.cancel(true);
 		}

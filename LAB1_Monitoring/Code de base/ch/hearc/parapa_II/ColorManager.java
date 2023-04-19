@@ -22,6 +22,10 @@ public class ColorManager {
         colors.add(new Color("ANSI_LIGHT_GREEN", "\u001B[38;5;40m"));
     }
 
+    /**
+     * Get the instance of the ColorManager
+     * @return the instance of the ColorManager
+     */
     public static ColorManager getInstance() {
         if (instance == null) {
             instance = new ColorManager();
@@ -29,6 +33,10 @@ public class ColorManager {
         return instance;
     }
 
+    /**
+     * Get a random color that is not already used
+     * @return a color
+     */
     public Color getRandomColor() {
         Color color = null;
         do {
