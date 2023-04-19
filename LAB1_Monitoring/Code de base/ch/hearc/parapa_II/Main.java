@@ -21,8 +21,8 @@ public class Main {
 	private static FutureTask<String> consoleTask = new FutureTask<>(new Callable<String>() {
 		@Override
 		public String call() throws Exception {
-			int nbDocuments = 2;
-			int nbPersons = 6;
+			int nbDocuments = GetUserIntegerInput("Insert number of concurrent documents (max 9) : ", 1, 9);
+			int nbPersons = GetUserIntegerInput("Insert number of readers / writers (max 9) : ", 1, 9);
 
 			/*
 			 * -----------------------------------------------------------------------------
@@ -58,18 +58,8 @@ public class Main {
 			waitingLogger.assignConsoleFuture(consoleTask, persons);
 
 			while (!consoleTask.isCancelled()) {
-				/*
-				 * -----------------------------------------------------------------------------
-				 * TODO : Lire en continu les inputs de l'utilisateur (prevoir une porte de
-				 * sortie sur demande d'arret du programme).
-				 * Permettre à l'utilisateur de visualiser la prochaine operation des logs
-				 * 
-				 * Remarque : Pour l'arret du programme, ne pas oublier d'interrompre tous les
-				 * threads en plus de la tache principale.
-				 * Pour afficher la prochaine operation du stack, voir la méthode popNextLog du
-				 * WaitingLogger
-				 * -----------------------------------------------------------------------------
-				 */
+
+				System.out.println("\n> Type EXIT to stop the program, NEXT or N to see the next log <\n");
 
 				String input = System.console().readLine();
 
@@ -132,4 +122,24 @@ public class Main {
 		return time - (time % 100);
 	}
 
+	private static int GetUserIntegerInput(String message, int min, int max) {
+		int input = 0;
+		boolean validInput = false;
+
+		while (!validInput) {
+			System.out.print(message);
+			try {
+				input = Integer.parseInt(System.console().readLine());
+				if (input >= min && input <= max) {
+					validInput = true;
+				} else {
+					System.out.println("Invalid input, please enter a number between " + min + " and " + max);
+				}
+			} catch (NumberFormatException e) {
+				System.out.println("Invalid input, please enter a number between " + min + " and " + max);
+			}
+		}
+
+		return input;
+	}
 }
