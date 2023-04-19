@@ -1,0 +1,110 @@
+@startuml
+
+class Database {
+  - lockSingleton: ReentrantLock
+  - instance: Database
+  - names: CopyOnWriteArrayList<String>
+  - documents: CopyOnWriteArrayList<Document>
+  + getInstance(): Database
+  + init(int size): void
+  + getNames(): CopyOnWriteArrayList<String>
+  + getRandomDocument(): Document
+  + getDocuments(): Set<Document>
+}
+
+class Document {
+  - content: String
+  - name: String
+  - reentrantLock: ReentrantReadWriteLock
+  + Document(String name)
+  + getName(): String
+  + getReadLock(): ReentrantReadWriteLock.ReadLock
+  + getWriteLock(): ReentrantReadWriteLock.WriteLock
+  + readContent(): String
+  + setContent(String newContent): void
+}
+
+enum Type {
+  WAITING
+  REMOVE
+  FINISHED
+}
+
+class Log {
+  - type: Type
+  - person: Person
+  - elapsedTime: long
+  + Log(Type type, Person person, long elapsedTime)
+  + getType(): Type
+  + getPerson(): Person
+  + getElapsedTime(): long
+  + toString(): String
+}
+
+class Person implements Runnable {
+    +READER
+    +WRITER
+    -name: String
+    -doc: Document
+    -role: Role
+    -startingTime: long
+    -durationTime: long
+    -waitingLogger: WaitingLogger
+    -timer: Timer
+    -diagramLog: String
+    +Person(String, Document, Role, long, long)
+    +run()
+    +timePassed(): long
+    +getName(): String
+    +getRole(): Role
+    +getDocument(): Document
+    +getStartingTime(): long
+    +getDurationTime(): long
+    +toString(): String
+    +getNameAndRole(): String
+    +updateDiagram(String): void
+    +getDiagramLog(): String
+}
+enum Role {
+    READER
+    WRITER
+}
+
+class Timer {
+    -startTime: long
+    -lockSingleton: ReentrantLock
+    -instance: Timer
+    +getInstance(): Timer
+    +timePassed(): long
+}
+
+class WaitingLogger {
+  <<Singleton>>
+  +getInstance(): WaitingLogger
+  +assignConsoleFuture(consoleFuture: FutureTask<String>, persons: ArrayList<Person>): void
+  +addWaiting(p: Person, timer: long): void
+  +removeWaiting(p: Person, timer: long): void
+  +finished(p: Person, timer: long): void
+  +popNextLog(): boolean
+  -logs: BlockingQueue<Log>
+  -waitingLists: BlockingQueue<Person>
+  -processingLists: BlockingQueue<Person>
+  -finishedLists: BlockingQueue<Person>
+  -persons: ArrayList<Person>
+  -documents: Set<Document>
+  -db: Database
+  -consoleFuture: FutureTask<String>
+  -longestElapsedTime: long
+  -stepPerSecDiagram: int
+  -lockSingleton: ReentrantLock
+  -instance: WaitingLogger
+  -DIAGRAM_SEPARATOR_CHAR: String
+}
+
+Database --> Document
+Database --> Log
+Document --> Person
+Document --> Log
+Timer --> WaitingLogger
+
+@enduml

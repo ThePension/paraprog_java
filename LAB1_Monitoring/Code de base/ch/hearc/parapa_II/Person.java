@@ -14,6 +14,9 @@ public class Person implements Runnable {
 	private WaitingLogger waitingLogger;
 	private Timer timer;
 
+	private long timeSpentInWaiting;
+	private long timeSpendInProcessing;
+
 	private String diagramLog;
 
 	/**
@@ -52,15 +55,16 @@ public class Person implements Runnable {
 			// de depart
 			this.sleep(this.startingTime);
 
-
 			// Une fois lance, ajoutez la personne dans la file d'attente d'acces a son
 			// document
 			waitingLogger.addWaiting(this, this.durationTime);
 
+			long startWaitingTime = timer.timePassed();
+			long startProcessingTime = 0;
+
 			if (role == Role.READER) {
 				/*
 				 * -----------------------------------------------------------------------------
-				 * -------------------------------------------------------
 				 * TODO : Tentative de lecture du document.
 				 * 
 				 * Remarque : - Penser à faire dormir le thread quand il a acces au document
@@ -71,13 +75,17 @@ public class Person implements Runnable {
 				 * - Le contenu lu dans le document ne doit pas necessairement �tre traite, seul
 				 * l'operation de lecture importe
 				 * -----------------------------------------------------------------------------
-				 * -------------------------------------------------------
 				 */
 
 				// Tentative de lecture du document
 				doc.getReadLock().lock();
 
-				waitingLogger.removeWaiting(this, this.timePassed());
+				// Get the spent time in waiting
+				timeSpentInWaiting = timer.timePassed() - startWaitingTime;
+
+				waitingLogger.removeWaiting(this, timeSpentInWaiting);
+
+				startProcessingTime = timer.timePassed();
 
 				doc.readContent();
 
@@ -102,8 +110,12 @@ public class Person implements Runnable {
 				// Tentative d'ecriture dans le document
 				doc.getWriteLock().lock();
 
+				timeSpentInWaiting = timer.timePassed() - startWaitingTime;
+
 				// Remove the person from the waiting queue
-				waitingLogger.removeWaiting(this, this.timePassed());
+				waitingLogger.removeWaiting(this, timeSpentInWaiting);
+
+				startProcessingTime = timer.timePassed();
 
 				doc.setContent(name);
 
@@ -112,8 +124,13 @@ public class Person implements Runnable {
 				doc.getWriteLock().unlock();
 			}
 
+			// Get the spent time in processing
+			timeSpendInProcessing = timer.timePassed() - startProcessingTime;
+
 			// Remove the person from the process queue
-			waitingLogger.finished(this, timePassed());
+			waitingLogger.finished(this, timeSpendInProcessing);
+
+
 
 		}
 		// catch (InterruptedException e) {} <- a documenter quand necessaire (gestion
@@ -158,6 +175,16 @@ public class Person implements Runnable {
 
 	public long getDurationTime() {
 		return durationTime;
+	}
+
+	public long getTimeSpentInWaiting()
+	{
+		return timeSpentInWaiting;
+	}
+
+	public long getTimeSpentInProcessing()
+	{
+		return timeSpendInProcessing;
 	}
 
 	@Override
