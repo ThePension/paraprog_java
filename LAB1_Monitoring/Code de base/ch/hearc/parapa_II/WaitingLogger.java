@@ -32,7 +32,6 @@ public class WaitingLogger {
 
 	private FutureTask<String> consoleFuture;
 
-	private long longestElapsedTime;
 	private int stepPerSecDiagram;
 
 	/**
@@ -48,8 +47,6 @@ public class WaitingLogger {
 		finishedLists = new LinkedBlockingQueue<>();
 
 		documents = db.getDocuments();
-
-		longestElapsedTime = 0;
 		stepPerSecDiagram = 10;
 	}
 
@@ -131,10 +128,6 @@ public class WaitingLogger {
 
 					// Update the diagram with " " * spaceGap + "W"
 					p.updateDiagram(" ".repeat(spaceGap) + "W");
-
-					// Update the longest elapsed time
-					longestElapsedTime = Math.max(longestElapsedTime, p.getStartingTime());
-
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 					return false;
@@ -153,10 +146,6 @@ public class WaitingLogger {
 
 					// Update the diagram with " " * spaceGap + "W"
 					p.updateDiagram(" ".repeat(spaceGap) + "T");
-
-					// Update the longest elapsed time
-					longestElapsedTime = Math.max(longestElapsedTime, nextLog.getElapsedTime());
-
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 					return false;
@@ -177,9 +166,6 @@ public class WaitingLogger {
 
 					// Update the diagram with "-" * spaceGap + "W"
 					p.updateDiagram(DIAGRAM_SEPARATOR_CHAR.repeat(spaceGap) + "F");
-
-					// Update the longest elapsed time
-					longestElapsedTime = Math.max(longestElapsedTime, p.getDurationTime());
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 					return false;
@@ -202,12 +188,13 @@ public class WaitingLogger {
 
 		System.out.println("\n-- Diagram ---------------------------------------------\n");
 
-		System.out.println("W : Waiting / R : Remove from waiting / T : W + R / F : Finished\n");
+		System.out.println("W : Start waiting for doc access / T : Stop waiting + Start processing / F : Stop processing, finished\n");
 
-		System.out.println("Longest elapsed time : " + (int) (longestElapsedTime / 1000.0) + 1 + "s");
+		// Get the longest diagram length
+		int longestDiagramLength = persons.stream().parallel().mapToInt(p_ -> p_.getDiagramLog().length()).max().getAsInt();
 
 		// Display graduation
-		System.out.println(this.getDiagramGraduatedAxis(15, 10));
+		System.out.println(this.getDiagramGraduatedAxis(15, longestDiagramLength / stepPerSecDiagram));
 
 		persons.stream().map(Person::getDiagramLog).forEach(System.out::println);
 
@@ -259,11 +246,11 @@ public class WaitingLogger {
 					.collect(Collectors.toCollection(ArrayList::new));
 
 			// Display the waiting and processing persons for the document
-			System.out.println("\n" + document.getName() + " (WAITING): "
+			System.out.println("\n" + document.getColor().getColoredText(document.getName()) + " (WAITING): "
 					+ waitingPersons2.stream().map(Person::getNameAndRole).collect(Collectors.joining(", ")));
-			System.out.println(document.getName() + " (PROCESSING): "
+			System.out.println(document.getColor().getColoredText(document.getName()) + " (PROCESSING): "
 					+ processingPersons2.stream().map(Person::getNameAndRole).collect(Collectors.joining(", ")));
-			System.out.println(document.getName() + " (FINISHED): "
+			System.out.println(document.getColor().getColoredText(document.getName()) + " (FINISHED): "
 					+ finishedPersons2.stream().map(Person::getNameAndRole).collect(Collectors.joining(", ")));
 		};
 	}
@@ -287,15 +274,6 @@ public class WaitingLogger {
 		double additionalGap = roundedGap / (double) stepPerSecDiagram;
 
 		gap += additionalGap;
-
-		// Add 1 to the gap if the diagram contains W ou T, and 2 if it contains both
-		// if (diagram.contains("W")) {
-		// gap += 1;
-		// }
-
-		// if (!diagram.contains("T")) {
-		// gap += 1d;
-		// }
 
 		return (int) Math.ceil(gap);
 	}

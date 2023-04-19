@@ -190,7 +190,7 @@ public class Person implements Runnable {
 	@Override
 	public String toString() {
 		return " - " + name + " (" + role + ") start : " + startingTime + " / duration : "
-				+ durationTime + " (" + doc.getName() + ")";
+				+ durationTime + " (" + doc.getColor().getColoredText(doc.getName()) + ")";
 	}
 
 	public String getNameAndRole() {
