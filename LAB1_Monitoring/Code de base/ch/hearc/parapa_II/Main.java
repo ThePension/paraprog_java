@@ -21,8 +21,8 @@ public class Main {
 	private static FutureTask<String> consoleTask = new FutureTask<>(new Callable<String>() {
 		@Override
 		public String call() throws Exception {
-			int nbDocuments = 1;
-			int nbPersons = 4;
+			int nbDocuments = 2;
+			int nbPersons = 6;
 
 			/*
 			 * -----------------------------------------------------------------------------

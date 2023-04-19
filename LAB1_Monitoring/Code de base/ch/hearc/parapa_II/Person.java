@@ -202,6 +202,6 @@ public class Person implements Runnable {
 	}
 
 	public String getDiagramLog() {
-		return diagramLog;
+		return this.doc.getColor().getColoredText(diagramLog);
 	}
 }

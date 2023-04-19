@@ -9,6 +9,7 @@ public class Document
 	
 	// Other variables
 	private String name;
+	private Color color;
 
 	private ReentrantReadWriteLock reentrantLock;
 	
@@ -16,9 +17,11 @@ public class Document
 	 * Constructor
 	 * @param name Name of the document
 	 */
-	public Document(String name)
+	public Document(String name, Color color)
 	{
 		this.name = name;
+
+		this.color = color;
 
 		this.reentrantLock = new ReentrantReadWriteLock();
 		
@@ -87,5 +90,14 @@ public class Document
 		// reentrantLock.writeLock().unlock();
 
 		content = newContent;
+	}
+
+	/**
+	 * Get the color of the document
+	 * @return the color of the document
+	 */
+	public Color getColor()
+	{
+		return color;
 	}
 }

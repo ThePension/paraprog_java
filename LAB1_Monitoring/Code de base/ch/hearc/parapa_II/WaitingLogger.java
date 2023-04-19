@@ -152,7 +152,7 @@ public class WaitingLogger {
 					int spaceGap = getSpaceGap(nextLog.getElapsedTime(), p.getDiagramLog()) + 1;
 
 					// Update the diagram with " " * spaceGap + "W"
-					p.updateDiagram(DIAGRAM_SEPARATOR_CHAR.repeat(spaceGap) + "T");
+					p.updateDiagram(" ".repeat(spaceGap) + "T");
 
 					// Update the longest elapsed time
 					longestElapsedTime = Math.max(longestElapsedTime, nextLog.getElapsedTime());
@@ -172,7 +172,8 @@ public class WaitingLogger {
 					// Calculate the space gap based on the starting time
 					int spaceGap = getSpaceGap(p.getDurationTime(), p.getDiagramLog());
 
-					if (spaceGap > 0) spaceGap--;
+					if (spaceGap > 0)
+						spaceGap--;
 
 					// Update the diagram with "-" * spaceGap + "W"
 					p.updateDiagram(DIAGRAM_SEPARATOR_CHAR.repeat(spaceGap) + "F");
@@ -289,11 +290,11 @@ public class WaitingLogger {
 
 		// Add 1 to the gap if the diagram contains W ou T, and 2 if it contains both
 		// if (diagram.contains("W")) {
-		// 	gap += 1;
+		// gap += 1;
 		// }
 
 		// if (!diagram.contains("T")) {
-		// 	gap += 1d;
+		// gap += 1d;
 		// }
 
 		return (int) Math.ceil(gap);
