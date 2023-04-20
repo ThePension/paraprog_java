@@ -24,6 +24,8 @@ public class Main {
 			int nbDocuments = GetUserIntegerInput("Insert number of concurrent documents (max 9) : ", 1, 9);
 			int nbPersons = GetUserIntegerInput("Insert number of readers / writers (max 9) : ", 1, 9);
 
+			boolean random = GetUserIntegerInput("Would you like to use random parameters (the type of person) ? (1 - Yes, 2 - No) : ", 1, 2) == 1;
+
 			// Database
 			Database db = Database.getInstance();
 			db.init(nbDocuments);
@@ -32,7 +34,7 @@ public class Main {
 			WaitingLogger waitingLogger = WaitingLogger.getInstance();
 
 			// Create threads
-			ArrayList<Person> persons = generatePopulation(db, nbPersons);
+			ArrayList<Person> persons = generatePopulation(db, nbPersons, random);
 
 			// Start threads
 			ArrayList<Thread> threads = new ArrayList<Thread>();
@@ -80,9 +82,10 @@ public class Main {
 	 * 
 	 * @param db        Database containing all documents
 	 * @param nbPersons Number of persons to generate
+	 * @param random    If true, the starting time and duration will be random, otherwise parameters will be asked to the user
 	 * @return a list of persons
 	 */
-	private static ArrayList<Person> generatePopulation(Database db, int nbPersons) {
+	private static ArrayList<Person> generatePopulation(Database db, int nbPersons, boolean random) {
 		ArrayList<Person> persons = new ArrayList<Person>();
 
 		long minStartingTime = 0;
@@ -94,7 +97,18 @@ public class Main {
 		for (int i = 0; i < nbPersons; i++) {
 			long startTime = (long) (minStartingTime + Math.random() * (maxStartingTime - minStartingTime));
 			long duration = (long) (minDuration + Math.random() * (maxDuration - minDuration));
-			Person.Role role = Math.random() < probabilityReader ? Person.Role.READER : Person.Role.WRITER;
+			
+			Person.Role role = null;
+
+			if (random) role = Math.random() < probabilityReader ? Person.Role.READER : Person.Role.WRITER;
+			else 
+			{
+				System.out.println("Person " + (i + 1) + " :");
+				System.out.println("1 - Reader");
+				System.out.println("2 - Writer");
+				int roleInput = GetUserIntegerInput("Choose role : ", 1, 2);
+				role = roleInput == 1 ? Person.Role.READER : Person.Role.WRITER;
+			}
 
 			persons.add(new Person("Thread " + (i + 1), db.getRandomDocument(), role, roundTime(startTime),
 					roundTime(duration)));
