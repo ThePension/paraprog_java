@@ -22,6 +22,7 @@ public class Main {
 		@Override
 		public String call() throws Exception {
 			int nbDocuments = GetUserIntegerInput("Insert number of concurrent documents (max 9) : ", 1, 9);
+			
 			int nbPersons = GetUserIntegerInput("Insert number of readers / writers (max 9) : ", 1, 9);
 
 			boolean random = GetUserIntegerInput("Would you like to use random parameters (the type of person) ? (1 - Yes, 2 - No) : ", 1, 2) == 1;
