@@ -24,15 +24,6 @@ public class Main {
 			int nbDocuments = GetUserIntegerInput("Insert number of concurrent documents (max 9) : ", 1, 9);
 			int nbPersons = GetUserIntegerInput("Insert number of readers / writers (max 9) : ", 1, 9);
 
-			/*
-			 * -----------------------------------------------------------------------------
-			 * TODO : Demander a l'utilisateur d'entrer un nombre de documents et un nombre
-			 * de personne
-			 * 
-			 * Remarque : via console ou interface graphique
-			 * -----------------------------------------------------------------------------
-			 */
-
 			// Database
 			Database db = Database.getInstance();
 			db.init(nbDocuments);
