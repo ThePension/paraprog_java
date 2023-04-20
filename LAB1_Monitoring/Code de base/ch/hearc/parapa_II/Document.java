@@ -16,12 +16,28 @@ public class Document
 	/**
 	 * Constructor
 	 * @param name Name of the document
+	 * @param color Color of the document
 	 */
 	public Document(String name, Color color)
 	{
 		this.name = name;
 
 		this.color = color;
+
+		this.reentrantLock = new ReentrantReadWriteLock();
+		
+		content = "No data";
+	}
+
+	/**
+	 * Constructor
+	 * @param name Name of the document
+	 */
+	public Document(String name)
+	{
+		this.name = name;
+
+		this.color = Color.NONE;
 
 		this.reentrantLock = new ReentrantReadWriteLock();
 		

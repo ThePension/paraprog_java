@@ -42,14 +42,15 @@ public class Database {
 	 * 
 	 * @param size
 	 */
-	public void init(int size) {
+	public void init(int size, boolean color) {
 		// Color manager
 		ColorManager colorManager = ColorManager.getInstance();
 
 		for (int i = 0; i < size; i++) {
 			String name = "Document " + (i + 1);
 
-			documents.add(new Document(name, colorManager.getRandomColor()));
+			if (color) documents.add(new Document(name, colorManager.getRandomColor()));
+			else documents.add(new Document(name));
 			names.add(name);
 		}
 	}

@@ -26,9 +26,11 @@ public class Main {
 
 			boolean random = GetUserIntegerInput("Would you like to use random parameters (the type of person) ? (1 - Yes, 2 - No) : ", 1, 2) == 1;
 
+			boolean color = GetUserIntegerInput("Would you like to use color (this feature might not work depending on the shell you're using) ? (1 - Yes, 2 - No) : ", 1, 2) == 1;
+
 			// Database
 			Database db = Database.getInstance();
-			db.init(nbDocuments);
+			db.init(nbDocuments, color);
 
 			// Waiting logger
 			WaitingLogger waitingLogger = WaitingLogger.getInstance();
