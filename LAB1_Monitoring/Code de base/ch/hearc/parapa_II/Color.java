@@ -7,7 +7,7 @@ public class Color {
     private String code;
     private boolean isAlreadyUsed;
 
-    public static final Color NONE = new Color("None", "");
+    public static final Color NONE = new NoneColor();
 
     /**
      * Constructor of the color
