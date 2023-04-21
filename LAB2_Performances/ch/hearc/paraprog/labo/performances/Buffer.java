@@ -27,9 +27,9 @@ public class Buffer
 	|*							Methodes Public							*|
 	\*------------------------------------------------------------------*/
 
-	public void push(String data)
+	public void push(String data) throws InterruptedException
 		{
-		this.buffer.add(data);
+		this.buffer.put(data);
 		}
 
 	public String take() throws InterruptedException

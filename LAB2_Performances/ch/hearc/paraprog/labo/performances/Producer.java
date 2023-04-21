@@ -23,7 +23,15 @@ public class Producer implements Runnable
 		{
 		while(true)
 			{
-			buffer.push(produceData());
+				try
+				{
+				buffer.push(produceData());
+				}
+			catch (InterruptedException e)
+				{
+				// TODO : improve
+				System.err.println("ERROR !");
+				}
 			}
 		}
 
