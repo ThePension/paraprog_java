@@ -1,17 +1,20 @@
 
 package ch.hearc.paraprog.labo.performances;
 
-public class Producer implements Runnable
+import java.util.concurrent.Callable;
+
+public class Producer implements Callable<Integer>
 	{
 
 	/*------------------------------------------------------------------*\
 	|*							Constructeurs							*|
 	\*------------------------------------------------------------------*/
 
-	public Producer(String name, Buffer buffer)
+	public Producer(Buffer buffer, int totalAccess)
 		{
-		this.name = name;
 		this.buffer = buffer;
+		this.totalAccess = totalAccess;
+		this.nbAccess = 0;
 		}
 
 	/*------------------------------------------------------------------*\
@@ -19,9 +22,9 @@ public class Producer implements Runnable
 	\*------------------------------------------------------------------*/
 
 	@Override
-	public void run()
-		{
-		while(true)
+	public Integer call()
+		{		
+		while(nbAccess < totalAccess)
 			{
 				try
 				{
@@ -29,10 +32,13 @@ public class Producer implements Runnable
 				}
 			catch (InterruptedException e)
 				{
-				// TODO : improve
-				System.err.println("ERROR !");
+				System.err.println("ERROR during producing data !");
 				}
+
+			nbAccess++;
 			}
+
+		return totalAccess;
 		}
 
 	/*------------------------------------------------------------------*\
@@ -41,7 +47,6 @@ public class Producer implements Runnable
 
 	private String produceData()
 		{
-		System.out.println("Producer (" + name + ") : " + DATA);
 		return DATA;
 		}
 
@@ -50,7 +55,8 @@ public class Producer implements Runnable
 	\*------------------------------------------------------------------*/
 
 	// Inputs
-	private String name;
+	private int nbAccess;
+	private int totalAccess;
 	private Buffer buffer;
 
 	// Tools

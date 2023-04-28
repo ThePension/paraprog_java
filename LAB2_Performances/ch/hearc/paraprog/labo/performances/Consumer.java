@@ -1,17 +1,20 @@
 
 package ch.hearc.paraprog.labo.performances;
 
-public class Consumer implements Runnable
+import java.util.concurrent.Callable;
+
+public class Consumer implements Callable<Integer>
 	{
 
 	/*------------------------------------------------------------------*\
 	|*							Constructeurs							*|
 	\*------------------------------------------------------------------*/
 
-	public Consumer(String name, Buffer buffer)
+	public Consumer(Buffer buffer, int totalAccess)
 		{
-		this.name = name;
 		this.buffer = buffer;
+		this.totalAccess = totalAccess;
+		this.nbAccess = 0;
 		}
 
 	/*------------------------------------------------------------------*\
@@ -19,9 +22,9 @@ public class Consumer implements Runnable
 	\*------------------------------------------------------------------*/
 
 	@Override
-	public void run()
+	public Integer call()
 		{
-		while(true)
+		while(nbAccess < totalAccess)
 			{
 			try
 				{
@@ -29,10 +32,13 @@ public class Consumer implements Runnable
 				}
 			catch (InterruptedException e)
 				{
-				// TODO : improve
-				System.err.println("ERROR !");
+				System.err.println("ERROR during consumming data !");
 				}
+
+			nbAccess++;
 			}
+
+		return totalAccess;
 		}
 
 	/*------------------------------------------------------------------*\
@@ -41,7 +47,7 @@ public class Consumer implements Runnable
 
 	private void processData(String data)
 		{
-		System.out.println("Consumer (" + name + ") : " + data);
+		// Nothing
 		}
 
 	/*------------------------------------------------------------------*\
@@ -49,6 +55,7 @@ public class Consumer implements Runnable
 	\*------------------------------------------------------------------*/
 
 	// Inputs
-	private String name;
+	private int nbAccess;
+	private int totalAccess;
 	private Buffer buffer;
 	}
