@@ -26,23 +26,27 @@ public class UsePerformance
 		{
 		try
 			{
-			// IMPORTANT : Le produit (nbProducer*nbWriteAccess) == (nbConsumer*nbReadAccess)
+			// IMPORTANT : The product (nbProducer*nbWriteAccess) == (nbConsumer*nbReadAccess)
+			// It is also important to have a huge amount of access to the blocking queue to limit the random in the results.
+			// RULE : (nbProducer*nbWriteAccess) == (nbConsumer*nbReadAccess) >= 500'000
 
-			System.out.println("\n\nSimulation 1 : nbProducer=500, nbConsumer=500, bufferSize=10, nbReadAccess=1000, nbWriteAccess=1000");
-			System.out.println("================================================================================================");
-			startSimulation(500, 500, 10, 1000, 1000);
-
-			System.out.println("\n\nSimulation 2 : nbProducer=500, nbConsumer=500, bufferSize=50, nbReadAccess=1000, nbWriteAccess=1000");
-			System.out.println("================================================================================================");
-			startSimulation(500, 500, 50, 1000, 1000);
-
-			System.out.println("\n\nSimulation 3 : nbProducer=500, nbConsumer=500, bufferSize=100, nbReadAccess=1000, nbWriteAccess=1000");
-			System.out.println("================================================================================================");
-			startSimulation(500, 500, 100, 1000, 1000);
-
-			System.out.println("\n\nSimulation 4 : nbProducer=500, nbConsumer=500, bufferSize=1000, nbReadAccess=1000, nbWriteAccess=1000");
-			System.out.println("================================================================================================");
-			startSimulation(500, 500, 1000, 1000, 1000);
+			startSimulation(12, 800, 200, 1, 2500, 625);
+			startSimulation(13, 800, 200, 2, 2500, 625);
+			startSimulation(14, 800, 200, 5, 2500, 625);
+			startSimulation(15, 800, 200, 10, 2500, 625);
+			startSimulation(0, 800, 200, 20, 2500, 625);
+			startSimulation(1, 800, 200, 50, 2500, 625);
+			startSimulation(2, 800, 200, 100, 2500, 625);
+			startSimulation(3, 800, 200, 200, 2500, 625);
+			startSimulation(4, 800, 200, 300, 2500, 625);
+			startSimulation(5, 800, 200, 400, 2500, 625);
+			startSimulation(6, 800, 200, 500, 2500, 625);
+			startSimulation(7, 800, 200, 600, 2500, 625);
+			startSimulation(8, 800, 200, 700, 2500, 625);
+			startSimulation(9, 800, 200, 800, 2500, 625);
+			startSimulation(10, 800, 200, 900, 2500, 625);
+			startSimulation(11, 800, 200, 1000, 2500, 625);
+			
 			} 
 		catch (InterruptedException e)
 			{
@@ -58,8 +62,11 @@ public class UsePerformance
 	|*							Methodes Private						*|
 	\*------------------------------------------------------------------*/
 
-	private static void startSimulation(int nbProducer, int nbConsumer, int bufferSize, int nbReadAccess, int nbWriteAccess) throws InterruptedException, ExecutionException
+	private static void startSimulation(int index, int nbProducer, int nbConsumer, int bufferSize, int nbReadAccess, int nbWriteAccess) throws InterruptedException, ExecutionException
 		{
+		System.out.println("\n\nSimulation " + index + " : nbProducer=" + nbProducer + ", nbConsumer=" + nbConsumer + ", bufferSize=" + bufferSize + ", nbReadAccess=" + nbReadAccess + ", nbWriteAccess=" + nbWriteAccess);
+		System.out.println("================================================================================================");
+
 		Buffer buffer = new Buffer(bufferSize);
 
 		ExecutorService executor = Executors.newFixedThreadPool(nbConsumer + nbProducer);
